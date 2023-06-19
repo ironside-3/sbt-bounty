@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h4>Rewards Per Tier</h4>
+    <table id="Rewards Per Tier">
+        <tr>
+            <th>Legendary: 3,000 SBT</th>
+            <th>Epic: 2,000 SBT</th>
+            <th>Rare: 1,000 SBT</th>
+            <th>Common: 500 SBT</th>
+            <th>Wanted Person: 50,000 SBT (incentive for battling the whole week)</th>
+        </tr>
+    </table>
+    <a href="leaderboard.html">View Leaderboard</a>
+    <h1>Leaderboard</h1>
+    <table id="leaderboard">
+        <tr>
+            <th>Username</th>
+            <th>Wins</th>
+            <th>Losses</th>
+        </tr>
+    </table>
+
+    <h2>Add Battle</h2>
+    <form id="battleForm">
+        <input type="text" id="battleLinkInput" placeholder="Enter battle link" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h3><button id="clearLogsBtn">Clear Logs</button>
+    </h3>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
