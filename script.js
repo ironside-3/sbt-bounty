@@ -7,9 +7,8 @@ function extractBattleId(battleLink) {
 document.addEventListener('DOMContentLoaded', () => {
     const leaderboardTable = document.getElementById('leaderboard');
     const clearLogsBtn = document.getElementById('clearLogsBtn');
-    const battleLinks = new Set();
 
-    function updateLeaderboard(battleData) {
+    function updateLeaderboard(battleData, battleId) {
         const { winner, player_1, player_2 } = battleData;
 
         console.log('API Response:', battleData);
@@ -22,6 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Retrieve existing leaderboard data from local storage
         let leaderboardData = JSON.parse(localStorage.getItem('leaderboardData')) || [];
+
+        let leaderboardIds = JSON.parse(localStorage.getItem('leaderboardIdData')) || [];
+
+        if (leaderboardIds.includes(battleId)) return;
+        leaderboardIds.push(battleId);
 
         // Determine the winner and loser
         let winningUsername, losingUsername;
@@ -70,16 +74,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Store the updated leaderboard data in local storage
         localStorage.setItem('leaderboardData', JSON.stringify(leaderboardData));
+        localStorage.setItem('leaderboardIdData', JSON.stringify(leaderboardIds));
     }
 
     const battleForm = document.getElementById('battleForm');
     const battleLinkInput = document.getElementById('battleLinkInput');
 
-    battleForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const battleLink = battleLinkInput.value;
+    const handleLink = (battleLink) => {
         const battleId = extractBattleId(battleLink);
-        if (battleId && !battleLinks.has(battleId)) { // Check if battleId exists and is not a duplicate
+        let leaderboardIds = JSON.parse(localStorage.getItem('leaderboardIdData')) || [];
+        if (battleId && !leaderboardIds.includes(battleId)) { // Check if battleId exists and is not a duplicate
             fetch(`https://api2.splinterlands.com/battle/result?id=${battleId}`)
                 .then(response => {
                     if (!response.ok) {
@@ -88,9 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return response.json();
                 })
                 .then(data => {
-                    updateLeaderboard(data);
-                    battleLinks.add(battleId); // Add battleId to the Set to avoid duplicates
-                    battleLinkInput.value = ''; // Clear the input field
+                    updateLeaderboard(data, battleId);
                     location.reload(); // Refresh the page
                 })
                 .catch(error => {
@@ -99,10 +101,35 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             console.log('Invalid battle link or duplicate entry');
         }
+    }
+
+    battleForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const battleLink = battleLinkInput.value;
+        handleLink(battleLink);
+        battleLinkInput.value = ''; // Clear the input field
+
+    });
+
+    const battleFormMultiple = document.getElementById('battleFormMultiple');
+    const battleLinkTextarea = document.getElementById('battleLinkTextarea');
+
+
+    battleFormMultiple.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text =  battleLinkTextarea.value;
+        const expression = /(https?:\/\/(?:www\.|(?!www))[^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})/gi;
+        const matches = text.match(expression);
+        matches.forEach((battleLink) => {
+           handleLink(battleLink);
+        });
+        battleLinkTextarea.value = ''; // Clear the input field
+
     });
 
     clearLogsBtn.addEventListener('click', () => {
         localStorage.removeItem('leaderboardData');
+        localStorage.removeItem('leaderboardIdData');
         leaderboardTable.innerHTML = '';
     });
 
