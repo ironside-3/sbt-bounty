@@ -1,8 +1,11 @@
-function extractBattleId(battleLink) {
+const NOTEPAD_LINK_ID = "bRnCFm5xkH7KDzfM2vXn";
+
+const extractBattleId = (battleLink) => {
     const url = new URL(battleLink);
     const searchParams = new URLSearchParams(url.search);
     return searchParams.get('id');
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const leaderboardTable = document.getElementById('leaderboard');
@@ -99,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('Error fetching battle data:', error);
                 });
         } else {
+            console.log(battleLink);
             console.log('Invalid battle link or duplicate entry');
         }
     }
@@ -115,14 +119,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const battleLinkTextarea = document.getElementById('battleLinkTextarea');
 
 
-    battleFormMultiple.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const text =  battleLinkTextarea.value;
+    const handleTextWithLinks = (text) => {
+        console.log(text);
         const expression = /(https?:\/\/(?:www\.|(?!www))[^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})/gi;
         const matches = text.match(expression);
         matches.forEach((battleLink) => {
-           handleLink(battleLink);
+            if (battleLink.includes('splinterlands')) {
+                handleLink(battleLink);
+            }
         });
+    }
+
+    battleFormMultiple.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text =  battleLinkTextarea.value;
+        handleTextWithLinks(text);
         battleLinkTextarea.value = ''; // Clear the input field
 
     });
@@ -164,5 +175,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         roleCell.appendChild(roleDropdown);
     });
+
+    fetch("https://api.allorigins.win/get?url=https%3A%2F%2Fnotepad.link%2Fraw%2F" + NOTEPAD_LINK_ID)
+        .then((res) => res.json())
+        .then((json) => {
+            console.log(json);
+            handleTextWithLinks(json.contents.replaceAll('\n', ' ').replaceAll('&amp;', '&'));
+        })
+        .catch((e) => console.error(e));
+
 });
 
