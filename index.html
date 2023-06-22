@@ -14,10 +14,39 @@
             border: 1px solid black;
             padding: 8px;
         }
+
+        #clock {
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #bounty-time {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
     </style>
 </head>
 
 <body>
+    <h2 id="bounty-time">Official Bounty Hunting Time</h2>
+    <div id="clock"></div>
+
+    <script>
+        function updateClock() {
+            const currentTime = new Date();
+            const timeZoneOffset = (8 - 0) * 60 * 60 * 1000; // 12 hours in milliseconds
+            const adjustedTime = new Date(currentTime.getTime() + timeZoneOffset);
+            const options = { timeZone: "UTC", hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" };
+            const timeString = adjustedTime.toLocaleTimeString(undefined, options);
+            document.getElementById('clock').textContent = timeString;
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+
     <h4>Rewards Per Tier</h4>
     <table id="Rewards Per Tier">
         <tr>
@@ -28,13 +57,14 @@
             <th>Wanted Person: 50,000 SBT (incentive for battling the whole week)</th>
         </tr>
     </table>
-    <a href="leaderboard.html">View Leaderboard</a>
+    <a href="leaderboard.html?data=[]">View Leaderboard</a>
     <h1>Leaderboard</h1>
     <table id="leaderboard">
         <tr>
             <th>Username</th>
             <th>Wins</th>
             <th>Losses</th>
+            <th>Role</th>
         </tr>
     </table>
 
@@ -44,14 +74,7 @@
         <button type="submit">Submit</button>
     </form>
 
-    <h2>Add Battles</h2>
-    <form id="battleFormMultiple">
-        <textarea id="battleLinkTextarea" required rows="20" cols="100"></textarea><br />
-        <button type="submit">Submit</button>
-    </form>
-
-    <h3><button id="clearLogsBtn">Clear Logs</button>
-    </h3>
+    <h3><button id="clearLogsBtn">Clear Logs</button></h3>
 
     <script src="script.js"></script>
 
