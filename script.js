@@ -201,20 +201,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const thumbnail = post.json_metadata?.image[0] || ''; // Change the property based on your JSON structure
                 const title = post.title;
 
-                // Create a link element with thumbnail and title
-                const linkElement = document.createElement('a');
+// Create a link element with thumbnail and title
+            const linkElement = document.createElement('a');
                 linkElement.href = post.url; // Set the URL of the post
                 linkElement.target = '_blank'; // Open the post in a new tab
 
-                // Apply CSS class to the link element
+        // Apply CSS class to the link element
                 linkElement.className = 'post-link';
 
-                linkElement.innerHTML = `
-        <img src="${thumbnail}" alt="Thumbnail">
-        <h3>${title}</h3>
-      `;
+            linkElement.innerHTML = `
+            <img src="${thumbnail}" alt="Thumbnail">
+            <h5>${title}</h5>`;
 
-                // Append the link element to the post element
+// Append the link element to the post element
                 postElement.appendChild(linkElement);
 
                 // Append the post element to the container
