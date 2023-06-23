@@ -98,6 +98,26 @@
 
     <h3><button id="clearLogsBtn">Clear Logs</button></h3>
 
+        <script>
+                const getPosts = async() => {
+    const hiveNode = "https://api.hive.blog";
+    const tag = "sbt";
+    const response = await fetch(hiveNode, {
+        "headers": {
+            "accept": "application/json, text/plain, */*",
+            "content-type": "application/json",
+        },
+        "referrerPolicy": "no-referrer",
+        "body": "{\"id\":33,\"jsonrpc\":\"2.0\",\"method\":\"bridge.get_ranked_posts\",\"params\":{\"tag\":\"" + tag + "\",\"sort\":\"trending\",\"limit\":21,\"start_author\":null,\"start_permlink\":null,\"observer\":\"noctury\"}}",
+        "method": "POST",
+        "mode": "cors",
+        "credentials": "omit"
+    });
+
+    const jsonData = await response.json();
+    return jsonData;
+    </script>
+
     <script src="script.js"></script>
 
 </body>
