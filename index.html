@@ -41,21 +41,7 @@
     </center>
     <h2 id="bounty-time">Official Bounty Hunting Time</h2>
     <div id="clock"></div>
-
-    <script>
-        function updateClock() {
-            const currentTime = new Date();
-            const timeZoneOffset = (8 - 0) * 60 * 60 * 1000; // 12 hours in milliseconds
-            const adjustedTime = new Date(currentTime.getTime() + timeZoneOffset);
-            const options = { timeZone: "UTC", hour12: false, year: 'numeric', month: 'long', day: 'numeric', hour: "2-digit", minute: "2-digit", second: "2-digit" };
-            const timeString = adjustedTime.toLocaleString(undefined, options);
-            document.getElementById('clock').textContent = timeString;
-        }
-
-        updateClock();
-        setInterval(updateClock, 1000);
-    </script>
-
+        
     <h4>Rewards Per Tier</h4>
     <table id="Rewards Per Tier">
         <tr>
