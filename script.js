@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Create a link element with thumbnail and title
             const linkElement = document.createElement('a');
-                linkElement.href = post.url; // Set the URL of the post
+                linkElement.href = `https://api.hive.blog${post.url}`;
                 linkElement.target = '_blank'; // Open the post in a new tab
 
         // Apply CSS class to the link element
