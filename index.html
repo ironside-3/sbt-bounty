@@ -13,8 +13,11 @@
 
         th,
         td {
-            border: 1px solid black;
+            border: 1px solid rgb(29, 7, 7);
             padding: 8px;
+        }
+        body {
+            background: linear-gradient(to right, #111111, #883e02);
         }
 
         #clock {
@@ -28,6 +31,42 @@
             font-weight: bold;
             text-align: center;
         }
+            
+        #postsContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-auto-rows: minmax(150px, auto);
+            gap: 10px;
+            max-width: 100%;
+            margin: 0 auto;
+            justify-content: flex-start;
+        }
+
+        .post {
+            display: flex;
+            flex-direction: column;
+            align-items: left;
+            justify-content: left;
+            text-align: left;
+            background-color: #8d2a0273;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .post img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .post h3 {
+            font-size: 16px;
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -38,13 +77,38 @@
         </div>
         <img src="token.png" class="rounded float-left" alt="...">
         <img src="token.png" class="rounded float-right" alt="...">
-    </center>
-    <h2 id="bounty-time">Official Bounty Hunting Time</h2>
+    <h2 id="bounty-time"><p class="text-white bg-dark">Official Bounty Hunting Time</p></h2>
     <div id="clock"></div>
+</center>
+            <script>
+        function updateClock() {
+            const clockElement = document.getElementById('clock');
+            clockElement.style.color = 'white';
+            const currentTime = new Date();
+            const timeZoneOffset = (8 - 0) * 60 * 60 * 1000; // 12 hours in milliseconds
+            const adjustedTime = new Date(currentTime.getTime() + timeZoneOffset);
+            const options = {
+                timeZone: "UTC",
+                hour12: false,
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+
+            };
+            const timeString = adjustedTime.toLocaleString(undefined, options);
+            document.getElementById('clock').textContent = timeString;
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
         
-    <h4>Rewards Per Tier</h4>
     <table id="Rewards Per Tier">
         <tr>
+        <th>Rewards per Tier</th>
             <th>Legendary: 3,000 SBT</th>
             <th>Epic: 2,000 SBT</th>
             <th>Rare: 1,000 SBT</th>
@@ -52,9 +116,8 @@
             <th>Wanted Person: 50,000 SBT (incentive for battling the whole week)</th>
         </tr>
    </table>
-    <a href="leaderboard.html?data=[]">View Leaderboard</a>
-    <center>
-            <div class="p-3 mb-2 bg-primary text-white"><h1>Bounty Hunters Board</h1></div>
+
+            <div class="p-3 mb-2 text-white"><h1>Bounty Hunters Board</h1></div>
     </center>
     <table class="table table-bordered table-dark">
         <thead>
@@ -70,39 +133,31 @@
         </tbody>
     </table>
 
-    <h2>Add Battle</h2>
-    <form id="battleForm">
-        <input type="text" id="battleLinkInput" placeholder="Enter battle link" required>
-        <button type="submit">Submit</button>
-    </form>
+<indent>
+            <h6>
+                <p class="text-white">Add Battles</p>
+            </h6>
+            <form id="battleForm">
+                <input type="text" id="battleLinkInput" placeholder="Enter battle link" required>
+                <button type="submit">Submit</button>
+            </form>
+        </indent>
 
-    <h2>Add Battles</h2>
-    <form id="battleFormMultiple">
-        <textarea id="battleLinkTextarea" required rows="20" cols="100"></textarea><br />
-        <button type="submit">Submit</button>
-    </form>
-
-    <h3><button id="clearLogsBtn">Clear Logs</button></h3>
-
-        <script>
-                const getPosts = async() => {
-    const hiveNode = "https://api.hive.blog";
-    const tag = "sbt";
-    const response = await fetch(hiveNode, {
-        "headers": {
-            "accept": "application/json, text/plain, */*",
-            "content-type": "application/json",
-        },
-        "referrerPolicy": "no-referrer",
-        "body": "{\"id\":33,\"jsonrpc\":\"2.0\",\"method\":\"bridge.get_ranked_posts\",\"params\":{\"tag\":\"" + tag + "\",\"sort\":\"trending\",\"limit\":21,\"start_author\":null,\"start_permlink\":null,\"observer\":\"noctury\"}}",
-        "method": "POST",
-        "mode": "cors",
-        "credentials": "omit"
-    });
-
-    const jsonData = await response.json();
-    return jsonData;
-    </script>
+ <div class="container-fluid">
+            <div class="row">
+                <div class="col-3">
+                    <form id="battleFormMultiple">
+                        <textarea id="battleLinkTextarea" placeholder="Enter battle links" required rows="15"
+                            cols="60"></textarea><br />
+                        <button type="submit">Submit</button>
+                    </form>
+                </div>
+                <div class="col-9">
+                    <div id="postsContainer"></div>
+                </div>
+            </div>
+        </div>
+    <h5><button id="clearLogsBtn">Clear Logs</button></h5>
 
     <script src="script.js"></script>
 
