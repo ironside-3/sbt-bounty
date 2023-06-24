@@ -165,80 +165,56 @@ document.addEventListener('DOMContentLoaded', () => {
         roleCell.appendChild(roleDropdown);
     });
     
-// Retrieve posts from the Hive API
-const getPosts = async () => {
-  const hiveNode = 'https://api.hive.blog';
-  const tag = 'sbt';
-  const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000); // Calculate the date 5 days ago
-  const filterOptions = {
-    tag: tag,
-    sort: 'trending',
-    limit: 21,
-    start_author: null,
-    start_permlink: null,
-    observer: 'noctury',
-    filter_tags: [],
-    filter_users: [],
-    filter_terms: [],
-    filter_languages: [],
-    filter_min_time: fiveDaysAgo.toISOString(), // Set the minimum time for posts
-  };
-  const requestData = {
-    id: 33,
-    jsonrpc: '2.0',
-    method: 'bridge.get_ranked_posts',
-    params: filterOptions,
-  };
+    // Retrieve existing leaderboard data from local storage and populate the leaderboard table
+    let leaderboardData = JSON.parse(localStorage.getItem('leaderboardData')) || [];
+    leaderboardData.forEach(data => {
+        const row = leaderboardTable.insertRow();
+        const usernameCell = row.insertCell();
+        usernameCell.textContent = data.username;
 
-  const response = await fetch(hiveNode, {
-    headers: {
-      accept: 'application/json, text/plain, */*',
-      'content-type': 'application/json',
-    },
-    referrerPolicy: 'no-referrer',
-    body: JSON.stringify(requestData),
-    method: 'POST',
-    mode: 'cors',
-    credentials: 'omit',
-  });
+        const winCell = row.insertCell();
+        winCell.textContent = data.wins;
 
-  const jsonData = await response.json();
-  return jsonData;
-};
+        const lossCell = row.insertCell();
+        lossCell.textContent = data.losses;
 
-// Call the getPosts function to fetch and display posts
-getPosts()
-  .then((jsonData) => {
-    console.log('API Response:', jsonData);
-    // Process and display the fetched posts
-    const postsContainer = document.getElementById('postsContainer');
-    jsonData.result.forEach((post) => {
-      const postElement = document.createElement('div');
-      postElement.className = 'post';
-
-      // Extract the thumbnail and title
-      const thumbnail = post.json_metadata?.image[0] || ''; // Change the property based on your JSON structure
-      const title = post.title;
-
-      // Create a link element with thumbnail and title
-      const linkElement = document.createElement('a');
-      linkElement.href = `https://hive.blog${post.url}`;
-      linkElement.target = '_blank'; // Open the post in a new tab
-
-      // Apply CSS class to the link element
-      linkElement.className = 'post-link';
-
-      linkElement.innerHTML = `
-        <img src="${thumbnail}" alt="Thumbnail">
-        <h5>${title}</h5>`;
-
-      // Append the link element to the post element
-      postElement.appendChild(linkElement);
-
-      // Append the post element to the container
-      postsContainer.appendChild(postElement);
+        const roleCell = row.insertCell();
+        const roleDropdown = document.createElement('select');
+        roleDropdown.className = 'role-dropdown';
+        roleDropdown.addEventListener('change', (e) => {
+            data.role = e.target.value;
+            localStorage.setItem('leaderboardData', JSON.stringify(leaderboardData));
+        });
+        ['Legendary', 'Epic', 'Rare', 'Common', 'Wanted Person'].forEach(role => {
+            const option = document.createElement('option');
+            option.value = role;
+            option.textContent = role;
+            if (data.role === role) {
+                option.selected = true;
+            }
+            roleDropdown.appendChild(option);
+        });
+        roleCell.appendChild(roleDropdown);
     });
-  })
-  .catch((error) => {
-    console.log('Error fetching posts:', error);
-  });
+        // Retrieve posts from the Hive API
+    const getPosts = async () => {
+        const hiveNode = 'https://api.hive.blog';
+        const tag = 'sbt';
+        const response = await fetch(hiveNode, {
+            headers: {
+                accept: 'application/json, text/plain, */*',
+                'content-type': 'application/json',
+            },
+            referrerPolicy: 'no-referrer',
+            body:
+                '{"id":33,"jsonrpc":"2.0","method":"bridge.get_ranked_posts","params":{"tag":"' +
+                tag +
+                '","sort":"trending","limit":21,"start_author":null,"start_permlink":null,"observer":"noctury"}}',
+            method: 'POST',
+            mode: 'cors',
+            credentials: 'omit',
+        });
+
+        const jsonData = await response.json();
+        return jsonData;
+    };
