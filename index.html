@@ -84,7 +84,7 @@
             <script>
         function updateClock() {
             const clockElement = document.getElementById('clock');
-            clockElement.style.color = 'red';
+            clockElement.style.color = 'white';
             const currentTime = new Date();
             const timeZoneOffset = (8 - 0) * 60 * 60 * 1000; // 12 hours in milliseconds
             const adjustedTime = new Date(currentTime.getTime() + timeZoneOffset);
@@ -122,8 +122,8 @@
 <center>
             <div class="p-3 mb-2 text-white"><h1>Bounty Hunters Board</h1></div>
     </center>
-    <table class="table table-bordered text-red">
-        <thead class="thead-light">
+    <table class="table table-bordered text-white">
+        <thead class="thead-dark">
             <tr>
                 <th scope="col">Username</th>
                 <th scope="col">Wins</th>
