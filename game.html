@@ -27,7 +27,7 @@
         var playerPaddle = 250;
         var computerPaddle = 250;
         const PADDLE_WIDTH = 7;
-        const PADDLE_HEIGHT = 100;
+        const PADDLE_HEIGHT = 75;
 
         //Player Mouse Movement 
         function calculateMousePos(evt) {
@@ -130,7 +130,7 @@
             colorCircle(ballX, ballY, 5, 'white');
             
             //draw player paddle
-            colorRect(3, playerPaddle, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+            colorRect(0, playerPaddle, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
 
              //draw computer paddle
              colorRect(canvas.width - PADDLE_WIDTH, computerPaddle, 
