@@ -72,7 +72,7 @@
                     width: Math.random() * (50 - 20) + 20,
                     height: Math.random() * (50 - 20) + 20,
                     hit: false,
-                    health: 0
+                    health: Math.floor(Math.random() * 4) + 2
                 });
             }
         }
@@ -160,6 +160,23 @@
                         height: 5,
                         health: enemy.width
                     });
+
+                    // Reduce enemy health
+                    enemy.health--;
+                    if (enemy.health <= 0) {
+                        // Increase armor
+                        if (playerLife >= computerLife) {
+                            playerArmor++;
+                        } else {
+                            computerArmor++;
+                        }
+                        enemy.hit = false;
+                    } else {
+                        // Remove health bar after 1 second
+                        setTimeout(function() {
+                            healthBars.pop();
+                        }, 1000);
+                    }
                 }
             }
 
@@ -173,13 +190,6 @@
             }
 
             if (allEnemiesHit) {
-                // Increase armor
-                if (playerLife >= computerLife) {
-                    playerArmor++;
-                } else {
-                    computerArmor++;
-                }
-
                 // Reset enemies
                 resetEnemies();
             }
