@@ -1,18 +1,11 @@
-<!DOCTYPE html>
-
 <html>
-
-    <div>    
-    <center>
-        <b>SBT Tennis</b>;
-    </center>
+    <div>
+        <center>
+            <b>SBT Tennis</b>
+        </center>
     </div>
-
-
-    <center>
-    <canvas id="gameCanvas" width="800"
-    height="600"</canvas>
-
+<center>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
     <script>
         var canvas;
         var canvasContext;
@@ -21,131 +14,243 @@
         var ballSpeedX = 10;
         var ballSpeedY = 4;
 
-        var playerScore = 0;
-        var computerScore = 0;
+        var playerArmor = 0;
+        var computerArmor = 0;
+        var playerLife = 25;
+        var computerLife = 25;
 
         var playerPaddle = 250;
         var computerPaddle = 250;
         const PADDLE_WIDTH = 7;
-        const PADDLE_HEIGHT = 75;
+        const PADDLE_HEIGHT = 100;
 
-        //Player Mouse Movement 
+        var enemyCount = 2; // Number of enemies
+        var enemies = []; // Array to store enemy positions
+
+        var healthBars = []; // Array to store enemy health bars
+
+        var firstScore = true; // Indicates if the first score has been made
+        var gameWon = false; // Indicates if the game has been won
+        const WINNING_SCORE = 3; // Score required to win
+
+        // Player Mouse Movement
         function calculateMousePos(evt) {
             var rect = canvas.getBoundingClientRect();
             var root = document.documentElement;
             var mouseX = evt.clientX - rect.left - root.scrollTop;
             var mouseY = evt.clientY - rect.top - root.scrollTop;
             return {
-                x:mouseX,
-                y:mouseY
-            }
+                x: mouseX,
+                y: mouseY
+            };
         }
 
-        //load scene
-        window.onload = function() {
-            
+        // Load scene
+        window.onload = function () {
             canvas = document.getElementById('gameCanvas');
             canvasContext = canvas.getContext('2d');
 
+            createEnemies(); // Create enemies
+
             var framesPerSecond = 30;
-            setInterval(function() {
+            setInterval(function () {
                 moveEverything();
                 drawEverything();
-            }, 1000/framesPerSecond);   
-            
-            canvas.addEventListener('mousemove' ,
-                        function(evt) {
-                            var mousePos = calculateMousePos (evt);
-                            playerPaddle = mousePos.y - (PADDLE_HEIGHT/2);
-                        });                        
-        }        
+            }, 1000 / framesPerSecond);
 
-        function computerMovement() {
-            var computerYCenter = computerPaddle + (PADDLE_HEIGHT/2)
-            if(computerYCenter < ballY - 35) {
-                computerPaddle += 6;
-            } else if( computerYCenter > ballY + 35) {                
-                computerPaddle = computerPaddle -= 6;
+            canvas.addEventListener('mousemove', function (evt) {
+                var mousePos = calculateMousePos(evt);
+                playerPaddle = mousePos.y - PADDLE_HEIGHT / 2;
+            });
+        };
+
+        function createEnemies() {
+            for (var i = 0; i < enemyCount; i++) {
+                enemies.push({
+                    x: Math.random() * (canvas.width - 50) + 25,
+                    y: Math.random() * (canvas.height - 50) + 25,
+                    width: Math.random() * (50 - 20) + 20,
+                    height: Math.random() * (50 - 20) + 20,
+                    hit: false,
+                    health: 0
+                });
             }
         }
 
-        //move everything
+        function computerMovement() {
+            var computerYCenter = computerPaddle + PADDLE_HEIGHT / 2;
+            if (computerYCenter < ballY - 35) {
+                computerPaddle += 6;
+            } else if (computerYCenter > ballY + 35) {
+                computerPaddle -= 6;
+            }
+        }
+
+        // Move everything
         function moveEverything() {
             computerMovement();
 
-            //ball movement
+            // Ball movement
             ballX += ballSpeedX;
             ballY += ballSpeedY;
-            
-            if(ballX < 0) {          
-                if(ballY > playerPaddle &&
-                ballY < playerPaddle + PADDLE_HEIGHT) {
-                    ballSpeedX = - ballSpeedX;
 
-                    var deltaY = ballY
-                        -(playerPaddle+PADDLE_HEIGHT/2); 
-                    ballSpeedY = deltaY * 0.35;                   
-
+            // Check collision with player paddle
+            if (ballX < 0) {
+                if (ballY > playerPaddle && ballY < playerPaddle + PADDLE_HEIGHT) {
+                    ballSpeedX = -ballSpeedX;
+                    var deltaY = ballY - (playerPaddle + PADDLE_HEIGHT / 2);
+                    ballSpeedY = deltaY * 0.35;
+                    firstScore = false;
                 } else {
+                    if (firstScore) {
+                        computerArmor--;
+                    } else {
+                        if (playerArmor <= 0) {
+                            playerLife--;
+                            if (playerLife <= 0) {
+                                gameWon = true;
+                                // Handle game over for player
+                            }
+                        } else {
+                            playerArmor--;
+                        }
+                    }
                     ballReset();
-                    computerScore ++;
                 }
             }
-            if(ballX > canvas.width) {
-                if(ballY > computerPaddle &&
-                    ballY < computerPaddle + PADDLE_HEIGHT) {
-                        ballSpeedX = - ballSpeedX;
 
-                        var deltaY = ballY
-                        -(computerPaddle+PADDLE_HEIGHT/2); 
-                    ballSpeedY = deltaY * 0.35; 
-
+            // Check collision with computer paddle
+            if (ballX > canvas.width) {
+                if (ballY > computerPaddle && ballY < computerPaddle + PADDLE_HEIGHT) {
+                    ballSpeedX = -ballSpeedX;
+                    var deltaY = ballY - (computerPaddle + PADDLE_HEIGHT / 2);
+                    ballSpeedY = deltaY * 0.35;
+                    firstScore = false;
+                } else {
+                    if (firstScore) {
+                        playerArmor--;
                     } else {
-                        ballReset();
-                        playerScore ++;
-                    }     
+                        if (computerArmor <= 0) {
+                            computerLife--;
+                            if (computerLife <= 0) {
+                                gameWon = true;
+                                // Handle game over for computer
+                            }
+                        } else {
+                            computerArmor--;
+                        }
+                    }
+                    ballReset();
+                }
             }
-            if(ballY < 0) {
-                ballSpeedY = -ballSpeedY;
-            }
-            if(ballY > canvas.height) {
-                ballSpeedY = -ballSpeedY;
-            }
-        }        
 
-        //resets ball
+            // Check collision with enemies
+            for (var i = 0; i < enemies.length; i++) {
+                var enemy = enemies[i];
+                if (!enemy.hit && ballX > enemy.x && ballX < enemy.x + enemy.width && ballY > enemy.y && ballY < enemy.y + enemy.height) {
+                    enemy.hit = true;
+                    ballSpeedX = -ballSpeedX;
+                    ballSpeedY = -ballSpeedY;
+
+                    // Create health bar for the enemy
+                    healthBars.push({
+                        x: enemy.x,
+                        y: enemy.y - 10,
+                        width: enemy.width,
+                        height: 5,
+                        health: enemy.width
+                    });
+                }
+            }
+
+            // Check if all enemies are hit
+            var allEnemiesHit = true;
+            for (var i = 0; i < enemies.length; i++) {
+                if (!enemies[i].hit) {
+                    allEnemiesHit = false;
+                    break;
+                }
+            }
+
+            if (allEnemiesHit) {
+                // Increase armor
+                if (playerLife >= computerLife) {
+                    playerArmor++;
+                } else {
+                    computerArmor++;
+                }
+
+                // Reset enemies
+                resetEnemies();
+            }
+
+            // Ball boundary collision
+            if (ballY < 0 || ballY > canvas.height) {
+                ballSpeedY = -ballSpeedY;
+            }
+        }
+
+        // Reset ball
         function ballReset() {
             ballSpeedX = -ballSpeedX;
-            ballX = canvas.width/2;
-            ballY = canvas.height/2;
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
         }
 
-        //draw sprites
-        function drawEverything() {
+        // Reset enemies
+        function resetEnemies() {
+            for (var i = 0; i < enemies.length; i++) {
+                enemies[i].hit = false;
+            }
+        }
 
-            //draws canvas
-            colorRect(0, 0, canvas.width, canvas.height, 'black');            
-            
-            //draws ball
+        // Draw sprites
+        function drawEverything() {
+            // Draw canvas
+            colorRect(0, 0, canvas.width, canvas.height, 'black');
+
+            // Draw ball
             colorCircle(ballX, ballY, 5, 'white');
-            
-            //draw player paddle
+
+            // Draw player paddle
             colorRect(0, playerPaddle, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
 
-             //draw computer paddle
-             colorRect(canvas.width - PADDLE_WIDTH, computerPaddle, 
-             PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+            // Draw computer paddle
+            colorRect(canvas.width - PADDLE_WIDTH, computerPaddle, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
 
-             //score        
-             canvasContext.fillText(playerScore, 100, 100);            
-             canvasContext.fillText(computerScore, canvas.width - 100, 100)
+            // Draw enemies
+            for (var i = 0; i < enemies.length; i++) {
+                var enemy = enemies[i];
+                if (!enemy.hit) {
+                    colorRect(enemy.x, enemy.y, enemy.width, enemy.height, 'red');
+                }
+            }
+
+            // Draw health bars
+            for (var i = 0; i < healthBars.length; i++) {
+                var healthBar = healthBars[i];
+                canvasContext.fillStyle = 'green';
+                canvasContext.fillRect(healthBar.x, healthBar.y, healthBar.health, healthBar.height);
+            }
+
+            // Draw Armor and life
+            canvasContext.fillStyle = 'white';
+            canvasContext.fillText('Player Armor: ' + playerArmor, 100, 100);
+            canvasContext.fillText('Enemy Armor: ' + computerArmor, canvas.width - 200, 100);
+            canvasContext.fillText('Player Life: ' + playerLife, 100, 150);
+            canvasContext.fillText('Computer Life: ' + computerLife, canvas.width - 200, 150);
+
+            // Draw winning message
+            if (gameWon) {
+                canvasContext.fillText('GAME OVER - Player Wins!', canvas.width / 2, canvas.height / 2);
+            }
         }
 
-        //ball function
+        // Ball function
         function colorCircle(centerX, topY, radius, drawColor) {
             canvasContext.fillStyle = drawColor;
             canvasContext.beginPath();
-            canvasContext.arc(centerX, topY, radius, 0, Math.PI*2, true);
+            canvasContext.arc(centerX, topY, radius, 0, Math.PI * 2, true);
             canvasContext.fill();
         }
 
@@ -153,9 +258,7 @@
             canvasContext.fillStyle = drawColor;
             canvasContext.fillRect(leftX, topY, width, height);
         }
-
-
     </script>
-    </center>
-
+</center>
 </html>
+
