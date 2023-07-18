@@ -1,0 +1,341 @@
+<html>
+    <body>
+        
+        <center>
+            <canvas id="gameCanvas"></canvas>
+            <script>
+                var canvas;
+                var canvasContext;
+                var ballX = 50;
+                var ballY = 50;
+                var ballSpeedX = 8; // Adjust horizontal speed
+                var ballSpeedY = 4; // Adjust vertical speed
+
+                var playerLife = 25;
+                var computerLife = 25;
+                var bounceScore = 0;
+                var enemiesDestroyed = 0; // Track enemies destroyed
+
+                var playerPaddle = 250;
+                var computerPaddle = 250;
+                const PADDLE_WIDTH = 7;
+                const PADDLE_HEIGHT = 100;
+
+                var enemies = []; // Array to store enemy positions
+
+                var healthBars = []; // Array to store enemy health bars
+
+                var gameWon = false; // Indicates if the game has been won
+                const WINNING_SCORE = 3; // Score required to win
+                const MAX_ANGLE = 170; // Maximum angle (in degrees) for random ball direction
+
+                // Player Mouse Movement
+                function calculateMousePos(evt) {
+                    var rect = canvas.getBoundingClientRect();
+                    var root = document.documentElement;
+                    var mouseX = evt.clientX - rect.left - root.scrollTop;
+                    var mouseY = evt.clientY - rect.top - root.scrollTop;
+                    return {
+                        x: mouseX,
+                        y: mouseY
+                    };
+                }
+
+                // Load scene
+                window.onload = function () {
+                    canvas = document.getElementById('gameCanvas');
+                    canvasContext = canvas.getContext('2d');
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+
+                    resetGame(); // Start the game
+
+                    var framesPerSecond = 80;
+                    setInterval(function () {
+                        moveEverything();
+                        drawEverything();
+                    }, 1000 / framesPerSecond);
+
+                    canvas.addEventListener('mousemove', function (evt) {
+                        var mousePos = calculateMousePos(evt);
+                        playerPaddle = mousePos.y - PADDLE_HEIGHT / 2;
+                    });
+
+                    window.addEventListener('resize', function () {
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                        resetGame();
+                    });
+                };
+                    enemiesDestroyedText
+                // Start a new game
+                function resetGame() {
+                    playerLife = 25;
+                    computerLife = 25;
+                    bounceScore = 0;
+                    enemiesDestroyed = 0; // Reset enemies destroyed
+                    enemies = []; // Clear existing enemies
+                    healthBars = []; // Clear existing health bars
+                    gameWon = false;
+
+                    createEnemies(); // Create new enemies
+                }
+
+                function createEnemies() {
+                    var numberOfEnemies = Math.floor(Math.random() * 8) + 1; // Random number of enemies between 1 and 8
+                    for (var i = 0; i < numberOfEnemies; i++) {
+                        var enemyType = Math.floor(Math.random() * 5); // Random enemy type between 0 and 4
+                        var enemyImage = new Image(); // Create image object for the enemy
+                        enemyImage.src = 'Enemy 1.png'; // Set the path or URL to the enemy image
+
+                        enemies.push({
+                            x: Math.random() * (canvas.width - 50) + 25,
+                            y: Math.random() * (canvas.height - 50) + 25,
+                            width: Math.random() * (50 - 20) + 20,
+                            height: Math.random() * (50 - 20) + 20,
+                            hit: false,
+                            health: Math.floor(Math.random() * 4) + 2,
+                            type: enemyType,
+                            image: enemyImage
+                        });
+                    }
+                }
+
+                function computerMovement() {
+                    var computerYCenter = computerPaddle + PADDLE_HEIGHT / 2;
+                    var targetYCenter = ballY;
+                    if (targetYCenter < computerYCenter - 35) {
+                        computerPaddle -= 6;
+                    } else if (targetYCenter > computerYCenter + 35) {
+                        computerPaddle += 6;
+                    }
+                }
+
+                // Move everything
+                function moveEverything() {
+                    computerMovement();
+
+                    // Ball movement
+                    ballX += ballSpeedX;
+                    ballY += ballSpeedY;
+
+                    // Check collision with player paddle
+                    if (
+                        ballX < PADDLE_WIDTH &&
+                        ballSpeedX < 0 &&
+                        ballY > playerPaddle &&
+                        ballY < playerPaddle + PADDLE_HEIGHT
+                    ) {
+                        ballSpeedX = -ballSpeedX;
+                        var deltaY = ballY - (playerPaddle + PADDLE_HEIGHT / 2);
+                        ballSpeedY = deltaY * 0.35;
+                        bounceScore++;
+                        increaseBallSpeed();
+                    } else if (ballX < 0) {
+                        playerLife--; // Deduct life only when the ball goes past the player paddle
+                        ballReset();
+                    }
+
+                    // Check collision with computer paddle
+                    if (
+                        ballX > canvas.width - PADDLE_WIDTH &&
+                        ballSpeedX > 0 &&
+                        ballY > computerPaddle &&
+                        ballY < computerPaddle + PADDLE_HEIGHT
+                    ) {
+                        ballSpeedX = -ballSpeedX;
+                        var deltaY = ballY - (computerPaddle + PADDLE_HEIGHT / 2);
+                        ballSpeedY = deltaY * 0.35;
+                        bounceScore++;
+                        increaseBallSpeed();
+                    } else if (ballX > canvas.width) {
+                        computerLife--; // Deduct life only when the ball goes past the computer paddle
+                        ballReset();
+                    }
+
+                    // Check collision with enemies
+                    for (var i = 0; i < enemies.length; i++) {
+                        var enemy = enemies[i];
+                        if (!enemy.hit && ballX > enemy.x && ballX < enemy.x + enemy.width && ballY > enemy.y && ballY < enemy.y + enemy.height) {
+                            enemy.hit = true;
+
+                            // Randomize ball direction upon bouncing
+                            var randomAngle = Math.random() * (MAX_ANGLE / 2) - (MAX_ANGLE / 4); // Random angle between -MAX_ANGLE/4 and MAX_ANGLE/4
+                            var bounceAngle = Math.atan2(ballSpeedY, ballSpeedX); // Current ball angle
+                            bounceAngle += randomAngle * (Math.PI / 180); // Add random angle (converted to radians) to the current angle
+
+                            // Calculate new ball speed based on the modified angle
+                            var speed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
+                            ballSpeedX = Math.cos(bounceAngle) * speed;
+                            ballSpeedY = Math.sin(bounceAngle) * speed;
+
+                            // Create health bar for the enemy
+                            healthBars.push({
+                                x: enemy.x,
+                                y: enemy.y - 10,
+                                width: enemy.width,
+                                height: 5,
+                                health: enemy.width
+                            });
+
+                            // Reduce enemy health
+                            enemy.health--;
+                            if (enemy.health <= 0) {
+                                enemy.hit = false;
+                                var scoreToAdd = Math.floor(Math.random() * 5) + 1; // Random score between 1 and 5
+                                bounceScore += scoreToAdd;
+                                playerLife++;
+                                computerLife++;
+                                increaseBallSpeed();
+                                enemiesDestroyed++; // Increment enemies destroyed
+                            } else {
+                                // Remove health bar after 1 second
+                                setTimeout(function () {
+                                    healthBars.pop();
+                                }, 500);
+
+                            }
+                        }
+                    }
+
+                    // Check if all enemies are hit
+                    var allEnemiesHit = true;
+                    for (var i = 0; i < enemies.length; i++) {
+                        if (!enemies[i].hit) {
+                            allEnemiesHit = false;
+                            break;
+                        }
+                    }
+
+                    if (allEnemiesHit) {
+                        // Reset enemies
+                        resetEnemies();
+                    }
+
+                    // Ball boundary collision
+                    if (ballY < 0 || ballY > canvas.height) {
+                        ballSpeedY = -ballSpeedY;
+                    }
+                }
+
+                // Reset ball
+                function ballReset() {
+                    ballSpeedX = 0; // Set initial X speed to 0
+                    ballSpeedY = 0; // Set initial Y speed to 0
+                    ballX = canvas.width / 2;
+                    ballY = canvas.height / 2;
+
+                    if (playerLife > 0 && computerLife > 0) {
+                        setTimeout(function () {
+                            ballSpeedX = 8; // Initial X speed
+                            ballSpeedY = 4; // Initial Y speed
+                            var angle = Math.random() * (MAX_ANGLE / 2) - (MAX_ANGLE / 4); // Random angle between -MAX_ANGLE/4 and MAX_ANGLE/4
+                            angle *= Math.PI / 180; // Convert angle to radians
+                            var speed = 10; // Adjust the initial speed as needed
+                            ballSpeedX = Math.cos(angle) * speed; // Calculate X component of speed
+                            ballSpeedY = Math.sin(angle) * speed; // Calculate Y component of speed
+                        }, 1500);
+                    } else {
+                        gameWon = true;
+                    }
+                }
+
+                // Increase ball speed
+                function increaseBallSpeed() {
+                    var decelerationFactor = 0.3; // Adjust the deceleration factor as needed
+
+                    if (Math.abs(ballSpeedX) < Math.abs(ballSpeedY) && Math.abs(ballSpeedX) < 2 * Math.sign(ballSpeedX)) {
+                        ballSpeedX *= decelerationFactor;
+                    } else if (Math.abs(ballSpeedY) < 2 * Math.sign(ballSpeedY)) {
+                        ballSpeedY *= decelerationFactor;
+                    }
+                }
+
+                // Reset enemies
+                function resetEnemies() {
+                    enemies = [];
+                    createEnemies();
+                    enemiesDestroyed++; // Increment enemies destroyed
+                }
+
+                // Draw sprites
+                function drawEverything() {
+                    // Draw canvas
+                    canvasContext.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw ball
+                    colorCircle(ballX, ballY, 5, 'white');
+
+                    // Draw player paddle
+                    colorRect(0, playerPaddle, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+
+                    // Draw computer paddle
+                    colorRect(canvas.width - PADDLE_WIDTH, computerPaddle, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+
+                    // Draw enemies
+                    for (var i = 0; i < enemies.length; i++) {
+                        var enemy = enemies[i];
+                            if (!enemy.hit) {
+                                canvasContext.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
+                            } else if (!enemy.alreadyHit) { // Check if enemy has already been hit
+                                enemiesDestroyed++; // Increment enemies destroyed
+                                enemy.alreadyHit = true; // Mark the enemy as already hit
+                            }
+                        }
+
+
+                    // Draw health bars
+                    for (var i = 0; i < healthBars.length; i++) {
+                        var healthBar = healthBars[i];
+                        canvasContext.fillStyle = 'green';
+                        canvasContext.fillRect(healthBar.x, healthBar.y, healthBar.health, healthBar.height);
+                    }
+
+                    // Draw Score
+                    var scoreText = 'Bounce Score: ' + bounceScore;
+                    canvasContext.fillStyle = 'white';
+                    canvasContext.font = 'bold 20px Arial';
+                    canvasContext.fillText(scoreText, (canvas.width - canvasContext.measureText(scoreText).width) / 2, 50);
+
+                    // Draw Life
+                    var playerLifeText = 'Player Life: ' + playerLife;
+                    var computerLifeText = 'Computer Life: ' + computerLife;
+                    canvasContext.font = 'bold 16px Arial';
+                    canvasContext.fillText(playerLifeText, (canvas.width - canvasContext.measureText(playerLifeText).width) / 2 - 100, 100);
+                    canvasContext.fillText(computerLifeText, (canvas.width - canvasContext.measureText(computerLifeText).width) / 2 + 100, 100);
+
+                    // Draw enemies destroyed score
+                    var enemiesDestroyedText = 'Enemies Destroyed: ' + enemiesDestroyed;
+                    canvasContext.fillText(enemiesDestroyedText, (canvas.width - canvasContext.measureText(enemiesDestroyedText).width) / 2, canvas.height - 50);
+
+                    // Draw winning message
+                    if (gameWon) {
+                        var gameWonText = 'GAME OVER - Player Wins!';
+                        canvasContext.font = 'bold 30px Arial';
+                        canvasContext.fillText(gameWonText, (canvas.width - canvasContext.measureText(gameWonText).width) / 2, canvas.height / 2);
+                    }
+                }
+
+                // Ball function
+                function colorCircle(centerX, topY, radius, drawColor) {
+                    canvasContext.fillStyle = drawColor;
+                    canvasContext.beginPath();
+                    canvasContext.arc(centerX, topY, radius, 0, Math.PI * 2, true);
+                    canvasContext.fill();
+                }
+
+                function colorRect(leftX, topY, width, height, drawColor) {
+                    canvasContext.fillStyle = drawColor;
+                    canvasContext.fillRect(leftX, topY, width, height);
+                }
+            </script>
+        </center>
+    </body>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</html>
